@@ -27,3 +27,10 @@ remaining roadmap concerns broader Vulkan coverage and CI device strategy.
   platform-surface extensions (which would create a dependency on
   windowing, i.e. on `cl-glfw3-kit`).
 - Whether tests run against lavapipe in CI or stay at the marshalling layer.
+
+## Coding guidelines for the implementation
+
+See [coding guidelines](coding-guidelines.md) for how the binding should be
+written once work starts: macro-first marshalling, where CPS genuinely
+applies, which org packages to depend on directly, and the org standards
+(file size, coverage, dependency policy) that already bind this repository.

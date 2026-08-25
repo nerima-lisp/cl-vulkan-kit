@@ -45,6 +45,7 @@ nav:
       - API: reference/api.md
   - Project:
       - Roadmap: project/roadmap.md
+      - Coding guidelines: project/coding-guidelines.md
 
 not_in_nav: |
   notes/

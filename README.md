@@ -42,6 +42,7 @@ than follow the default branch.
 - [Getting started](https://nerima-lisp.github.io/cl-vulkan-kit/getting-started/)
 - [API reference](https://nerima-lisp.github.io/cl-vulkan-kit/reference/api/)
 - [Roadmap](https://nerima-lisp.github.io/cl-vulkan-kit/project/roadmap/)
+- [Coding guidelines](https://nerima-lisp.github.io/cl-vulkan-kit/project/coding-guidelines/)
 
 ## Development
 
