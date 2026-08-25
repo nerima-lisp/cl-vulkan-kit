@@ -4,9 +4,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-MkDocs%20Material-0a7a5a)](https://nerima-lisp.github.io/cl-vulkan-kit/)
 
-Common Lisp CFFI bindings for [Vulkan](https://www.vulkan.org/), targeting
-SBCL. The package currently covers Vulkan loader management, instance
-creation/destruction, and physical-device enumeration.
+Common Lisp bindings for [Vulkan](https://www.vulkan.org/), targeting SBCL.
+Instance creation, instance-level enumeration, and physical-device
+enumeration/properties are bound and tested against a real Vulkan
+implementation — see
+[docs/src/project/roadmap.md](docs/src/project/roadmap.md) for what is not
+bound yet.
 
 Full documentation is published at <https://nerima-lisp.github.io/cl-vulkan-kit/>.
 The source for that site lives in [docs/src/](docs/src/).
@@ -16,12 +19,11 @@ The source for that site lives in [docs/src/](docs/src/).
 ```lisp
 (asdf:load-system "cl-vulkan-kit")
 
-(cl-vulkan-kit:library-version)
-;; => "1.0.0"
-
-(cl-vulkan-kit:with-vulkan-loader
-  (cl-vulkan-kit:with-vulkan-instance (instance)
-    (cl-vulkan-kit:enumerate-physical-devices instance)))
+(cl-vulkan-kit:with-instance (instance)
+  (dolist (device (cl-vulkan-kit:physical-devices instance))
+    (format t "~a~%"
+            (cl-vulkan-kit:vk-physical-device-properties-device-name
+             (cl-vulkan-kit:physical-device-properties device)))))
 ```
 
 ## Install
@@ -29,7 +31,7 @@ The source for that site lives in [docs/src/](docs/src/).
 ```nix
 # flake.nix
 inputs.cl-vulkan-kit = {
-  url = "github:nerima-lisp/cl-vulkan-kit/v1.0.0";
+  url = "github:nerima-lisp/cl-vulkan-kit/v0.1.0";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
@@ -42,7 +44,6 @@ than follow the default branch.
 - [Getting started](https://nerima-lisp.github.io/cl-vulkan-kit/getting-started/)
 - [API reference](https://nerima-lisp.github.io/cl-vulkan-kit/reference/api/)
 - [Roadmap](https://nerima-lisp.github.io/cl-vulkan-kit/project/roadmap/)
-- [Coding guidelines](https://nerima-lisp.github.io/cl-vulkan-kit/project/coding-guidelines/)
 
 ## Development
 
@@ -53,20 +54,8 @@ nix flake check      # tests + formatting + docs, the same gate CI uses
 nix fmt              # format Nix sources (treefmt)
 ```
 
-Tests live in `t/`, use `cl-weave` directly through the ASDF test system, and
-run with a five-second per-test timeout. The test system targets the checked-in
-source tree, including the split Vulkan type, constant, function, loader,
-instance, and device modules.
-
-To enable the cl-weave coverage gate (100% expression and branch coverage), set
-the coverage switch. Output paths are optional and default to a temporary
-directory:
-
-```sh
-CL_VULKAN_KIT_COVERAGE=1 nix run .#test
-# Equivalently, when the test app forwards arguments:
-nix run .#test -- --coverage
-```
+Tests live in `t/` and run under [cl-weave](https://github.com/nerima-lisp/cl-weave),
+the org's test framework.
 
 ## Contributing
 

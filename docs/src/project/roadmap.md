@@ -1,36 +1,47 @@
 # Roadmap
 
-The initial core binding is implemented: loader management, instance
-creation/destruction, and physical-device enumeration are available. The
-remaining roadmap concerns broader Vulkan coverage and CI device strategy.
+## Done
 
-## What implementing the binding requires
+Instance lifecycle, instance-level enumeration (API version, extensions,
+layers), and physical-device enumeration/properties/queue-family properties
+are bound and tested against a real Vulkan implementation — a software ICD
+(Mesa's lavapipe) in CI on `x86_64-linux`, MoltenVK locally on
+`aarch64-darwin`. See the [API reference](../reference/api.md) for the full
+surface and [Getting started](../getting-started.md) for a working example.
 
-- **Broader API coverage.** Command queues, buffers, images, synchronization,
-  and extension/platform-surface APIs are not yet wrapped.
-- **A nixpkgs package for the C library.** `pkgs.vulkan-loader` and
-  `pkgs.vulkan-headers` exist in nixpkgs, so `nix flake check` can stay
-  network-free — but a real *device* for tests needs either a software
-  Vulkan implementation (nixpkgs' `mesa` provides the `lavapipe` /
-  `llvmpipe` software ICD) or `continue-on-error` scoping like
-  `cl-tty-kit`'s `contrib` job.
-- **A headless CI testing strategy.** `nix flake check` runs on
-  `ubuntu-latest` with no display server and no real GPU.
-  `vkEnumeratePhysicalDevices` needs an ICD loader to find *something*
-  (lavapipe covers that) even with zero real hardware; window/surface
-  creation (`VK_KHR_surface` plus a windowing extension) additionally needs
-  a display, the same constraint as `cl-glfw3-kit`.
+Bound via `sb-alien`, SBCL's built-in FFI — not the external `cffi` library.
+`nerima-lisp/.github`'s `CODING_STANDARD.md` prefers `sb-*` over a new
+external dependency whenever it can cover the gap, and `sb-alien` can here
+(dynamic library loading, C structs, calling through resolved function
+pointers), so this system stays at zero external Lisp dependencies.
 
-## Not yet decided
+## Not yet bound
 
-- Whether this binds core Vulkan only, or also `VK_KHR_surface` /
-  platform-surface extensions (which would create a dependency on
-  windowing, i.e. on `cl-glfw3-kit`).
-- Whether tests run against lavapipe in CI or stay at the marshalling layer.
+- **Logical devices, queues, command pools/buffers.** The next natural
+  slice: `vkCreateDevice`, `vkGetDeviceQueue`, and enough of the command
+  buffer API to submit something. Device-level commands need the same
+  per-instance-style dispatch-table treatment this system already has for
+  instance-level commands, resolved through `vkGetDeviceProcAddr` instead of
+  `vkGetInstanceProcAddr`.
+- **Memory allocation** (`VkPhysicalDeviceMemoryProperties`,
+  `vkAllocateMemory`) and **shaders/pipelines/render passes** — needed
+  before anything can actually draw or compute.
+- **`VK_KHR_surface` and platform surface extensions** (window/swapchain
+  creation). Not yet started, and not yet decided: binding a window surface
+  needs a windowing library on the other side of it, which would be a
+  dependency on `cl-glfw3-kit` — an org-internal dependency, so
+  straightforward under `DEPENDENCY_POLICY.md`, but a real design decision
+  (which windowing surface extensions to support, how much of GLFW's
+  Vulkan-specific API to lean on) that has not been made yet.
 
-## Coding guidelines for the implementation
+## Testing without a GPU
 
-See [coding guidelines](coding-guidelines.md) for how the binding should be
-written once work starts: macro-first marshalling, where CPS genuinely
-applies, which org packages to depend on directly, and the org standards
-(file size, coverage, dependency policy) that already bind this repository.
+`pkgs.mesa`'s software Vulkan ICD (llvmpipe/"lavapipe") gives `checks.default`
+on `x86_64-linux` a real, headless Vulkan implementation — no GPU, no
+network, nothing that needs to run outside the Nix sandbox — so the
+`:vulkan-icd`-tagged tests in `t/instance-test.lisp` and
+`t/physical-device-test.lisp` exercise real `vkCreateInstance`/
+`vkEnumeratePhysicalDevices`/etc. calls in CI, not just compile them. There is
+no lavapipe equivalent for `aarch64-darwin` in nixpkgs; `flake.nix` wires
+MoltenVK there instead, for `nix develop`/`nix build` on the maintainer's own
+machine (Metal-backed, so it needs a real GPU, unlike lavapipe).

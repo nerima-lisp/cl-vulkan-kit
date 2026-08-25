@@ -2,42 +2,56 @@
 (defpackage #:cl-vulkan-kit
   (:use #:cl)
   (:export
+   ;; version
    #:library-version
+   ;; conditions
    #:cl-vulkan-kit-error
-   #:vulkan-error
-   #:vulkan-error-result
-   #:load-vulkan
-   #:unload-vulkan
-   #:vulkan-loaded-p
-   #:call-with-vulkan-loader
-   #:with-vulkan-loader
-   #:call-with-vulkan-instance
-   #:with-vulkan-instance
+   #:vulkan-call-failed
+   #:vulkan-call-failed-function
+   #:vulkan-call-failed-result
+   ;; instance
    #:create-instance
    #:destroy-instance
-   #:enumerate-physical-devices
-   #:vulkan-version
-   #:vulkan-instance
-   #:physical-device))
+   #:with-instance
+   #:instance-api-version
+   #:instance-extension-properties
+   #:instance-layer-properties
+   #:vk-make-api-version
+   ;; physical device
+   #:physical-devices
+   #:physical-device-properties
+   #:physical-device-queue-family-properties
+   ;; VkExtensionProperties
+   #:vk-extension-properties
+   #:vk-extension-properties-extension-name
+   #:vk-extension-properties-spec-version
+   ;; VkLayerProperties
+   #:vk-layer-properties
+   #:vk-layer-properties-layer-name
+   #:vk-layer-properties-spec-version
+   #:vk-layer-properties-implementation-version
+   #:vk-layer-properties-description
+   ;; VkExtent3D
+   #:vk-extent-3d
+   #:vk-extent-3d-width
+   #:vk-extent-3d-height
+   #:vk-extent-3d-depth
+   ;; VkQueueFamilyProperties
+   #:vk-queue-family-properties
+   #:vk-queue-family-properties-queue-flags
+   #:vk-queue-family-properties-queue-count
+   #:vk-queue-family-properties-timestamp-valid-bits
+   #:vk-queue-family-properties-min-image-transfer-granularity
+   ;; VkPhysicalDeviceProperties
+   #:vk-physical-device-properties
+   #:vk-physical-device-properties-api-version
+   #:vk-physical-device-properties-driver-version
+   #:vk-physical-device-properties-vendor-id
+   #:vk-physical-device-properties-device-id
+   #:vk-physical-device-properties-device-type
+   #:vk-physical-device-properties-device-name
+   #:vk-physical-device-properties-pipeline-cache-uuid
+   #:vk-physical-device-properties-limits
+   #:vk-physical-device-properties-sparse-properties))
 
 (in-package #:cl-vulkan-kit)
-
-(defvar *vulkan-loaded* nil)
-(defconstant +vk-api-version-1-0+ #x00400000)
-
-(defun create-instance (&key (application-name "cl-vulkan-kit")
-                              (application-version 1)
-                              (engine-name "cl-vulkan-kit")
-                              (engine-version 1)
-                              (api-version +vk-api-version-1-0+))
-  (%create-instance* application-name application-version
-    engine-name engine-version api-version))
-
-(defun enumerate-physical-devices (instance &key (max-attempts 4))
-  (%enumerate-physical-devices* instance max-attempts))
-
-(defmacro with-vulkan-loader (&body body)
-  `(call-with-vulkan-loader (lambda () ,@body)))
-
-(defmacro with-vulkan-instance ((instance &rest options) &body body)
-  `(call-with-vulkan-instance (lambda (,instance) ,@body) ,@options))

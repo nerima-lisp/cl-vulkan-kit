@@ -1,5 +1,5 @@
 site_name: cl-vulkan-kit
-site_description: Common Lisp CFFI bindings for the Vulkan graphics and compute API
+site_description: Common Lisp bindings for the Vulkan graphics and compute API
 site_url: https://nerima-lisp.github.io/cl-vulkan-kit/
 repo_url: https://github.com/nerima-lisp/cl-vulkan-kit
 repo_name: nerima-lisp/cl-vulkan-kit
