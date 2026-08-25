@@ -46,6 +46,51 @@
       pname = "cl-vulkan-kit";
       asd = ./cl-vulkan-kit.asd;
       root = ./.;
+      sourceInclude = [
+        ./src
+        ./t
+        ./run-tests.lisp
+      ];
+
+      extraOutputs =
+        ctx:
+        let
+          coverage = ctx.cl.mkCoverageReport {
+            drv = ctx.package;
+            name = "cl-vulkan-kit-coverage";
+            timeoutSeconds = 600;
+            killAfterSeconds = 30;
+            entryPointText = ''
+              (require "asdf")
+              (asdf:load-system "cl-weave")
+              (asdf:load-system "cl-vulkan-kit/test")
+              (let ((report-directory
+                      (merge-pathnames "cl-nix-forge-coverage-report/"
+                                       (uiop:getcwd))))
+                (ensure-directories-exist report-directory)
+              (unless
+                  (cl-weave:run-all
+                   :reporter :spec
+                   :max-workers 1
+                   :coverage t
+                   :coverage-reset t
+                   :coverage-report-directory report-directory
+                   :coverage-include-pathnames
+                   (mapcar #'uiop:ensure-pathname
+                           '("src/core.lisp"
+                             "src/vulkan-device.lisp"
+                             "src/vulkan-instance.lisp"
+                             "src/vulkan-loader.lisp"))
+                   :coverage-minimum-expression 100
+                   :coverage-minimum-branch 100)
+                (error "cl-vulkan-kit coverage suite failed")))
+            '';
+          };
+        in
+        {
+          packages.coverage = coverage;
+          checks.coverage = coverage;
+        };
 
       meta = {
         description = "Common Lisp CFFI bindings for the Vulkan graphics and compute API";
@@ -53,7 +98,32 @@
         license = nixpkgs.lib.licenses.mit;
       };
 
-      lispCheckDependencies = ctx: [ cl-weave.packages.${ctx.system}.cl-weave ];
+      lispDependencies =
+        ctx:
+        [
+          (cl-nix-forge.lib.${nixpkgs.lib.head systems}.fromDerivation {
+            drv = cl-weave.packages.${ctx.system}.cl-weave;
+            recursive = true;
+          })
+          (cl-nix-forge.lib.${nixpkgs.lib.head systems}.fromDerivation {
+            drv = nixpkgs.legacyPackages.${ctx.system}.sbclPackages.cffi;
+            recursive = true;
+          })
+        ]
+        ++ map (
+          drv:
+          cl-nix-forge.lib.${nixpkgs.lib.head systems}.fromDerivation {
+            inherit drv;
+            recursive = true;
+          }
+        ) nixpkgs.legacyPackages.${ctx.system}.sbclPackages.cffi.propagatedBuildInputs;
+
+      lispCheckDependencies = ctx: [
+        (cl-nix-forge.lib.${nixpkgs.lib.head systems}.fromDerivation {
+          drv = cl-weave.packages.${ctx.system}.cl-weave;
+          recursive = true;
+        })
+      ];
 
       docs.root = ./docs;
 

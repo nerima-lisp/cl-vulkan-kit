@@ -5,6 +5,6 @@ cross-platform, low-overhead graphics and compute API.
 
 ## Status
 
-This repository is provisioning only: the GitHub repo, CI, Cachix cache, and
-documentation site exist, but no Vulkan binding has been written yet. See
-the [roadmap](project/roadmap.md) for what implementing one requires.
+The package currently provides Vulkan loader management, instance lifecycle,
+and physical-device enumeration through CFFI. See the
+[roadmap](project/roadmap.md) for remaining coverage.

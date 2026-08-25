@@ -1,16 +1,13 @@
 # Roadmap
 
-This repository is provisioning only today: GitHub repo, Cachix cache, CI,
-and this documentation site exist; no Vulkan binding does.
+The initial core binding is implemented: loader management, instance
+creation/destruction, and physical-device enumeration are available. The
+remaining roadmap concerns broader Vulkan coverage and CI device strategy.
 
 ## What implementing the binding requires
 
-- **External dependency justification.** `cffi` is the obvious FFI layer,
-  but nerima-lisp/.github's `DEPENDENCY_POLICY.md` defaults to rejecting a
-  new external dependency. All four conditions in its "外部依存を追加する手続き"
-  section need to be satisfied explicitly in the PR body, including that
-  this repository is L2 or above (`cffi` is precedented only in `cl-tmux`,
-  an L4 repository, today).
+- **Broader API coverage.** Command queues, buffers, images, synchronization,
+  and extension/platform-surface APIs are not yet wrapped.
 - **A nixpkgs package for the C library.** `pkgs.vulkan-loader` and
   `pkgs.vulkan-headers` exist in nixpkgs, so `nix flake check` can stay
   network-free — but a real *device* for tests needs either a software

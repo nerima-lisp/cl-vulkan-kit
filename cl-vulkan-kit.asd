@@ -3,27 +3,28 @@
 
 (defsystem "cl-vulkan-kit"
   :description "Common Lisp CFFI bindings for the Vulkan graphics and compute API"
-  :long-description "cl-vulkan-kit will provide Common Lisp bindings for
-Vulkan, the cross-platform low-level graphics and compute API. The actual
-CFFI bindings are not implemented yet -- this repository is provisioning
-only. See docs/src/project/roadmap.md, and DEPENDENCY_POLICY.md's
-4-condition external-dependency test in nerima-lisp/.github, which the PR
-that adds a real cffi :depends-on must satisfy explicitly (cffi is only
-precedented for cl-tmux today, an L4 repository)."
+  :long-description "cl-vulkan-kit provides Common Lisp CFFI bindings for
+Vulkan, including loader management, instance creation and destruction, and
+physical-device enumeration. See docs/src/project/roadmap.md for coverage."
   :author "takeokunn <bararararatty@gmail.com>"
   :maintainer "takeokunn <bararararatty@gmail.com>"
   :license "MIT"
-  :version "0.1.0"
+  :version "1.0.0"
   :homepage "https://github.com/nerima-lisp/cl-vulkan-kit"
   :bug-tracker "https://github.com/nerima-lisp/cl-vulkan-kit/issues"
-  :source-control (:git "https://github.com/nerima-lisp/cl-vulkan-kit.git")
-  :depends-on ()
+  :depends-on ("cffi")
   :pathname "src"
   :serial t
   :components
   ((:file "package")
    (:file "conditions")
-   (:file "core"))
+   (:file "core")
+   (:file "vulkan-types")
+   (:file "vulkan-constants")
+   (:file "vulkan-functions")
+   (:file "vulkan-loader")
+   (:file "vulkan-instance")
+   (:file "vulkan-device"))
   :in-order-to ((test-op (test-op "cl-vulkan-kit/test"))))
 
 (defsystem "cl-vulkan-kit/test"
@@ -31,10 +32,9 @@ precedented for cl-tmux today, an L4 repository)."
   :author "takeokunn <bararararatty@gmail.com>"
   :maintainer "takeokunn <bararararatty@gmail.com>"
   :license "MIT"
-  :version "0.1.0"
+  :version "1.0.0"
   :homepage "https://github.com/nerima-lisp/cl-vulkan-kit"
   :bug-tracker "https://github.com/nerima-lisp/cl-vulkan-kit/issues"
-  :source-control (:git "https://github.com/nerima-lisp/cl-vulkan-kit.git")
   :depends-on ("cl-vulkan-kit" "cl-weave")
   :pathname "t"
   :serial t
@@ -43,5 +43,8 @@ precedented for cl-tmux today, an L4 repository)."
    (:file "core-test"))
   :perform (test-op (operation component)
              (declare (ignore operation component))
-             (unless (funcall (symbol-function (find-symbol "RUN-TESTS" "CL-VULKAN-KIT/TEST")))
+             (unless (uiop:symbol-call :cl-weave :run-all
+                                       :reporter :spec
+                                       :pass-with-no-tests nil
+                                       :timeout-ms 5000)
                (error "cl-vulkan-kit test suite failed"))))

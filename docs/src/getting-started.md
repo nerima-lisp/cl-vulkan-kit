@@ -2,7 +2,8 @@
 
 ## Install
 
-Via a sibling checkout on `CL_SOURCE_REGISTRY` or ASDF's `*central-registry*`:
+With the Nix development shell, dependencies and ASDF discovery are configured
+automatically:
 
 ```lisp
 (asdf:load-system "cl-vulkan-kit")
@@ -11,10 +12,18 @@ Via a sibling checkout on `CL_SOURCE_REGISTRY` or ASDF's `*central-registry*`:
 ## Running the tests
 
 ```sh
-sbcl --script run-tests.lisp
+nix run .#test
 ```
 
-expects a sibling `../cl-weave/` checkout (the test system's only
-dependency; see `cl-vulkan-kit.asd`).
+The test system declares `cl-weave` directly and applies a five-second timeout
+to each test. Vulkan loader discovery is handled by CFFI and uses the
+platform's standard Vulkan library name.
 
-There is nothing to bind to Vulkan yet — see the [roadmap](project/roadmap.md).
+```lisp
+(let ((instance (cl-vulkan-kit:create-instance
+                 :application-name "sample")))
+  (unwind-protect
+       (format t "Physical devices: ~D~%"
+               (length (cl-vulkan-kit:enumerate-physical-devices instance)))
+    (cl-vulkan-kit:destroy-instance instance)))
+```

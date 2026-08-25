@@ -5,8 +5,8 @@
 [![Documentation](https://img.shields.io/badge/docs-MkDocs%20Material-0a7a5a)](https://nerima-lisp.github.io/cl-vulkan-kit/)
 
 Common Lisp CFFI bindings for [Vulkan](https://www.vulkan.org/), targeting
-SBCL. Provisioning only today: no binding is implemented yet — see
-[docs/src/project/roadmap.md](docs/src/project/roadmap.md).
+SBCL. The package currently covers Vulkan loader management, instance
+creation/destruction, and physical-device enumeration.
 
 Full documentation is published at <https://nerima-lisp.github.io/cl-vulkan-kit/>.
 The source for that site lives in [docs/src/](docs/src/).
@@ -17,7 +17,11 @@ The source for that site lives in [docs/src/](docs/src/).
 (asdf:load-system "cl-vulkan-kit")
 
 (cl-vulkan-kit:library-version)
-;; => "0.1.0"
+;; => "1.0.0"
+
+(cl-vulkan-kit:with-vulkan-loader
+  (cl-vulkan-kit:with-vulkan-instance (instance)
+    (cl-vulkan-kit:enumerate-physical-devices instance)))
 ```
 
 ## Install
@@ -25,7 +29,7 @@ The source for that site lives in [docs/src/](docs/src/).
 ```nix
 # flake.nix
 inputs.cl-vulkan-kit = {
-  url = "github:nerima-lisp/cl-vulkan-kit/v0.1.0";
+  url = "github:nerima-lisp/cl-vulkan-kit/v1.0.0";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
@@ -48,8 +52,20 @@ nix flake check      # tests + formatting + docs, the same gate CI uses
 nix fmt              # format Nix sources (treefmt)
 ```
 
-Tests live in `t/` and run under [cl-weave](https://github.com/nerima-lisp/cl-weave),
-the org's test framework.
+Tests live in `t/`, use `cl-weave` directly through the ASDF test system, and
+run with a five-second per-test timeout. The test system targets the checked-in
+source tree, including the split Vulkan type, constant, function, loader,
+instance, and device modules.
+
+To enable the cl-weave coverage gate (100% expression and branch coverage), set
+the coverage switch. Output paths are optional and default to a temporary
+directory:
+
+```sh
+CL_VULKAN_KIT_COVERAGE=1 nix run .#test
+# Equivalently, when the test app forwards arguments:
+nix run .#test -- --coverage
+```
 
 ## Contributing
 
